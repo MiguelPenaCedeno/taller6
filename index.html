@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -28,6 +27,43 @@
   --profit-pos: #2E7D32;
   --profit-neg: #C62828;
 }
+
+[data-theme="light"] {
+  --bg: #F5F4F2;
+  --surface: #FFFFFF;
+  --surface2: #ECEAE6;
+  --border: rgba(0,0,0,0.10);
+  --text: #1C1B1A;
+  --text-muted: #6B6A68;
+  --text-dim: #A09E9B;
+  --accent: #D4845A;
+  --accent2: #4A9B57;
+  --accent3: #4A7BA8;
+  --cat-furniture: #4A7BA8;
+  --cat-technology: #4A9B57;
+  --cat-office: #D4845A;
+  --profit-pos: #2E7D32;
+  --profit-neg: #C62828;
+}
+
+[data-theme="light"] .header {
+  background: linear-gradient(180deg, rgba(235,233,228,0.95) 0%, transparent 100%);
+}
+
+[data-theme="light"] .card {
+  background: #FFFFFF;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .card-label {
+  color: #A09E9B;
+}
+
+[data-theme="light"] .theme-btn {
+  border-color: rgba(0,0,0,0.15);
+  color: #6B6A68;
+}
+
 
 html { scroll-behavior: smooth; }
 
@@ -113,7 +149,7 @@ body {
   background: rgba(255,255,255,0.04);
 }
 
-/* MONTH SLICER */
+/* SLICERS */
 .slicer-label {
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -122,29 +158,40 @@ body {
   margin-bottom: 10px;
   font-weight: 500;
 }
-
-.month-buttons {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
+.month-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
 .month-btn {
   padding: 5px 12px;
   border-radius: 16px;
   border: 1px solid transparent;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.75rem; font-weight: 500;
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
   background: var(--surface2);
   color: var(--text-muted);
 }
-
 .month-btn:hover { opacity: 0.85; color: var(--text); }
 .month-btn.active { border-color: currentColor !important; color: #E8E6E3 !important; filter: brightness(1.2); }
+
+.region-btn {
+  padding: 5px 14px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem; font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+.region-btn:hover { color: var(--text); opacity: 0.85; }
+.region-btn.active {
+  border-color: var(--rc) !important;
+  color: #E8E6E3 !important;
+  background: rgba(255,255,255,0.06);
+}
 
 /* MAIN LAYOUT */
 .main {
@@ -459,6 +506,33 @@ body {
   font-size: 0.85rem;
   font-style: italic;
 }
+
+.theme-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.theme-btn:hover {
+  border-color: rgba(255,255,255,0.2);
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+[data-theme="light"] .theme-btn:hover {
+  border-color: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.04);
+  color: var(--text);
+}
+
 </style>
 </head>
 <body>
@@ -466,19 +540,31 @@ body {
 <div class="header">
   <div class="header-top">
     <div class="title-block">
-      <h1>Superstore Performance Analysis</h1>
-      <div class="subtitle">Visualización de datos según el framework de Tamara Munzner</div>
+      <h1>Taller 6</h1>
+      
       <div class="team">Miguel Angel Pe&ntilde;a Cede&ntilde;o</div>
     </div>
     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+      <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙 Oscuro</button>
       <span class="filter-badge" id="filterBadge">Filtro activo</span>
       <button class="reset-btn" onclick="resetFilters()">&#x21BA; Reset filtros</button>
     </div>
   </div>
-  <div>
-    <div class="slicer-label">Filtrar por mes  dato c&iacute;clico</div>
-    <div class="month-buttons" id="monthButtons"></div>
-  </div>
+  <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;">
+    <div>
+      <div class="slicer-label">Filtrar por mes</div>
+      <div class="month-buttons" id="monthButtons"></div>
+    </div>
+    <div>
+      <div class="slicer-label">Filtrar por regi&oacute;n</div>
+      <div style="display:flex; gap:6px;">
+        <button class="region-btn" data-region="West" onclick="toggleRegion('West',this)" style="--rc:#5B8DB8;">West</button>
+        <button class="region-btn" data-region="East" onclick="toggleRegion('East',this)" style="--rc:#6BAE75;">East</button>
+        <button class="region-btn" data-region="Central" onclick="toggleRegion('Central',this)" style="--rc:#D4845A;">Central</button>
+        <button class="region-btn" data-region="South" onclick="toggleRegion('South',this)" style="--rc:#A96BAE;">South</button>
+      </div>
+    </div>
+    </div>
 </div>
 
 <div class="main">
@@ -487,33 +573,33 @@ body {
     <!-- IDIOM 1: Bubble Chart -->
     <div class="card" id="card1">
       <div class="card-header">
-        <div class="card-label">Idiom 1  COMPARE  Categ&oacute;rico</div>
-        <div class="card-title">DistVentas por Categor&iacute;a y Regi&oacute;n (Heatmap)</div>
-        <div class="legend" id="legend1"></div>
+        <div class="card-label">C&iacute;clico</div>
+        <div class="card-title">Patrones Estacionales de &Oacute;rdenes por Regi&oacute;n</div>
+        
       </div>
       <div id="chart1"></div>
-      <div class="munzner-note">Paleta cualitativa: hues distintos codifican Category (3 colores); posici&oacute;n en eje X codifica Region. Canal de color + posici&oacute;n para dos atributos categ&oacute;ricos (Munzner, Cap. 10)</div>
+      
     </div>
 
     <!-- IDIOM 2: Heatmap bars -->
     <div class="card" id="card2">
       <div class="card-header">
-        <div class="card-label">Idiom 2  IDENTIFY  Secuencial</div>
-        <div class="card-title">Mapa de Ventas por Estado (Cor&oacute;pleta)</div>
+        <div class="card-label">Secuencial</div>
+        <div class="card-title">Estados por Volumen de Ventas</div>
       </div>
       <div id="chart2"></div>
-      <div class="munzner-note">Mapa cor&oacute;pleta: color secuencial en un solo hue codifica magnitud de ventas por estado. Canal geogr&aacute;fico + luminosidad = dato secuencial (Munzner, Cap. 10)</div>
+      
     </div>
   </div>
 
   <!-- IDIOM 3: Diverging bars -->
   <div class="card" id="card3" style="margin-bottom:20px;">
     <div class="card-header">
-      <div class="card-label">Idiom 3  DISCOVER  Divergente</div>
+      <div class="card-label">Divergente</div>
       <div class="card-title">Profit por Sub-Categor&iacute;a  Ganancias vs. P&eacute;rdidas</div>
     </div>
     <div id="chart3"></div>
-    <div class="munzner-note">Lollipop chart: posici&oacute;n del punto codifica profit; escala divergente (rojo-blanco-verde) con cero como break-even sem&aacute;nticamente cr&iacute;tico (Munzner, Cap. 10)</div>
+    
   </div>
 
   <!-- STORYTELLING -->
@@ -524,15 +610,15 @@ body {
       <div class="story-paragraphs">
         <div class="story-para" id="sp1">
           <div class="para-icon">&#128200;</div>
-          <p>Este dashboard analiza el rendimiento de ventas de <strong>Superstore entre 2014 y 2017</strong>. La historia comienza con una pregunta fundamental: &iquest;todas las categor&iacute;as son igualmente rentables? El gr&aacute;fico de burbujas revela que <strong>Technology domina en ventas</strong> con Phones y Copiers liderando, pero con alta varianza entre subcategor&iacute;as.</p>
+          <p>El gr&aacute;fico radial c&iacute;clico revela patrones estacionales claros en el volumen de &oacute;rdenes de Superstore entre 2014 y 2017. Los meses de noviembre y diciembre concentran los picos m&aacute;ximos de actividad, mientras que enero y febrero registran los valores m&aacute;s bajos del a&ntilde;o. El color verde intenso identifica de inmediato los meses de mayor demanda, confirmando una estacionalidad predecible y repetible cada a&ntilde;o.</p>
         </div>
         <div class="story-para" id="sp2">
           <div class="para-icon">&#127758;</div>
-          <p>El heatmap geogr&aacute;fico expone una <strong>concentraci&oacute;n alarmante</strong>: California y New York concentran m&aacute;s del <strong>33.5% de las ventas totales</strong>, dejando a m&aacute;s de 20 estados con participaci&oacute;n marginal. North Dakota, West Virginia y Maine suman menos de $4,000 en ventas combinadas durante todo el per&iacute;odo.</p>
+          <p>El segundo idiom expone una concentraci&oacute;n alarmante: California y New York concentran m&aacute;s del 33.5% de las ventas totales, dejando a m&aacute;s de 20 estados con participaci&oacute;n marginal. El tama&ntilde;o y color de cada tile codifican simult&aacute;neamente el volumen, permitiendo identificar de un vistazo los mercados prioritarios frente a los secundarios.</p>
         </div>
         <div class="story-para" id="sp3">
           <div class="para-icon">&#9888;&#65039;</div>
-          <p>Pero la historia m&aacute;s cr&iacute;tica la cuenta el gr&aacute;fico divergente: <strong>Tables, Bookcases y Supplies destruyen valor sistem&aacute;ticamente</strong>. Tables acumula <strong>-$17,725 de profit</strong>  por cada d&oacute;lar vendido en Tables, la empresa pierde dinero neto. Estas tres subcategor&iacute;as requieren una revisi&oacute;n urgente de pricing o discontinuaci&oacute;n.</p>
+          <p>El gr&aacute;fico lollipop divergente expone subcategor&iacute;as que destruyen valor sistem&aacute;ticamente: Tables acumula -$17,725 de profit, Bookcases -$3,473 y Supplies -$1,189. Por cada d&oacute;lar vendido en Tables la empresa pierde dinero neto. Estas tres subcategor&iacute;as requieren una revisi&oacute;n urgente de pricing o discontinuaci&oacute;n antes de que sigan erosionando la rentabilidad total.</p>
         </div>
       </div>
     </div>
@@ -546,7 +632,7 @@ body {
       <div class="insight-card" id="ins1">
         <div class="insight-icon">&#128201;</div>
         <div class="insight-title">Tables: destructor de valor #1</div>
-        <div class="insight-desc">Tables acumula el mayor profit negativo de todas las subcategor&iacute;as del portafolio, con p&eacute;rdidas que superan la suma de las otras dos subcategor&iacute;as en rojo.</div>
+        <div class="insight-desc">Tables acumula las mayores p&eacute;rdidas de todas las subcategor&iacute;as del portafolio, con p&eacute;rdidas que superan la suma de las otras dos subcategor&iacute;as en rojo.</div>
         <span class="insight-value negative">Profit: -$17,725</span>
       </div>
       <div class="insight-card" id="ins2">
@@ -572,9 +658,7 @@ body {
 
 </div>
 
-<div class="footer">
-  Superstore Performance Analysis  Framework de Tamara Munzner  D3.js v7
-</div>
+
 
 <div class="tooltip" id="tooltip">
   <div class="tooltip-title" id="tt-title"></div>
@@ -10623,12 +10707,17 @@ function smartSplit(line) {
 }
 
 // ============================================================
-// STATE
+// STATE  — fuente única de verdad para todos los filtros
 // ============================================================
 let allData = [];
-let activeMonths = new Set();
-let activeSubCat = null;
+let activeMonths  = new Set();   // Set<1..12>
+let activeSubCat  = null;        // string | null   (desde Idiom 3)
+let activeState   = null;        // string | null   (desde Idiom 2)
+let activeRegion  = null;        // string | null   (desde botones región)
 let activeLegendCats = new Set(['Furniture','Technology','Office Supplies']);
+
+// Origen del último filtro (para retroalimentación visual)
+const FILTER_SOURCE = { IDIOM1:'idiom1', IDIOM2:'idiom2', IDIOM3:'idiom3' };
 
 // ============================================================
 // MONTH COLORS (cyclic)
@@ -10693,23 +10782,20 @@ const fmtUSD = d3.format('$,.0f');
 const fmtK = d3.format('$,.1~s');
 
 // ============================================================
-// FILTERED DATA
+// FILTERED DATA  — aplica TODOS los filtros activos
 // ============================================================
-function getFiltered() {
+function getFiltered({ excludeSubCat=false, excludeState=false, excludeRegion=false }={}) {
   let d = allData;
-  if (activeMonths.size > 0) {
-    d = d.filter(r => activeMonths.has(r.Month));
-  }
-  if (activeSubCat) {
-    d = d.filter(r => r['Sub-Category'] === activeSubCat);
-  }
+  if (activeMonths.size > 0)      d = d.filter(r => activeMonths.has(r.Month));
+  if (!excludeSubCat && activeSubCat)  d = d.filter(r => r['Sub-Category'] === activeSubCat);
+  if (!excludeState  && activeState)   d = d.filter(r => r.State === activeState);
+  if (!excludeRegion && activeRegion)  d = d.filter(r => r.Region === activeRegion);
   return d;
 }
 
-function getFilteredForIdiom1() {
-  let d = allData;
-  if (activeMonths.size > 0) d = d.filter(r => activeMonths.has(r.Month));
-  return d;
+// Para chart1 (radial mes): excluye filtro de subcat para no vaciar la rueda
+function getFilteredForChart1() {
+  return getFiltered({ excludeSubCat: true });
 }
 
 // ============================================================
@@ -10717,12 +10803,11 @@ function getFilteredForIdiom1() {
 // ============================================================
 function buildMonthSlicer() {
   const container = document.getElementById('monthButtons');
+  if (!container) return;
   MONTHS.forEach((m, i) => {
     const btn = document.createElement('button');
     btn.className = 'month-btn';
     btn.textContent = m;
-    btn.style.setProperty('--mc', MONTH_COLORS[i]);
-    btn.style.borderColor = 'transparent';
     btn.dataset.month = i + 1;
     btn.addEventListener('click', () => toggleMonth(i + 1, btn));
     container.appendChild(btn);
@@ -10746,32 +10831,54 @@ function toggleMonth(m, btn) {
 }
 
 // ============================================================
+// REGION TOGGLE
+// ============================================================
+function toggleRegion(region, btn) {
+  if (activeRegion === region) {
+    activeRegion = null;
+    btn.classList.remove('active');
+  } else {
+    activeRegion = region;
+    document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  updateAll();
+}
+
+// ============================================================
 // RESET
 // ============================================================
 function resetFilters() {
   activeMonths.clear();
-  activeSubCat = null;
+  activeSubCat  = null;
+  activeState   = null;
+  activeRegion  = null;
   activeLegendCats = new Set(['Furniture','Technology','Office Supplies']);
   document.querySelectorAll('.month-btn').forEach(b => {
     b.classList.remove('active');
     b.style.borderColor = 'transparent';
     b.style.color = '';
   });
-  document.getElementById('filterBadge').classList.remove('visible');
+  document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
   updateAll();
 }
 
 // ============================================================
-// UPDATE ALL
+// UPDATE ALL  — propaga cambios a los 3 idioms + badge
 // ============================================================
 function updateAll() {
-  const hasCatFilter = activeLegendCats.size < 3;
-  const hasSubCatFilter = activeSubCat !== null;
-  const hasMonthFilter = activeMonths.size > 0;
-  if (hasSubCatFilter || hasMonthFilter) {
-    document.getElementById('filterBadge').classList.add('visible');
+  const hasFilter = activeSubCat || activeState || activeRegion || activeMonths.size > 0;
+  const badge = document.getElementById('filterBadge');
+  if (hasFilter) {
+    const parts = [];
+    if (activeSubCat)        parts.push(activeSubCat);
+    if (activeState)         parts.push(activeState);
+    if (activeRegion)        parts.push(activeRegion);
+    if (activeMonths.size)   parts.push(activeMonths.size + ' mes' + (activeMonths.size>1?'es':''));
+    badge.textContent = parts.join(' · ');
+    badge.classList.add('visible');
   } else {
-    document.getElementById('filterBadge').classList.remove('visible');
+    badge.classList.remove('visible');
   }
   drawChart1();
   drawChart2();
@@ -10779,21 +10886,8 @@ function updateAll() {
 }
 
 // ============================================================
-// IDIOM 1  BUBBLE CHART
+// IDIOM 1  RADIAL CHART — click en arco filtra mes globalmente
 // ============================================================
-function buildLegend1() {
-  const container = document.getElementById('legend1');
-  container.innerHTML = '';
-  ['Furniture','Technology','Office Supplies'].forEach(cat => {
-    const item = document.createElement('div');
-    item.className = 'legend-item active';
-    item.dataset.cat = cat;
-    item.style.color = CAT_COLORS[cat];
-    item.innerHTML = `<div class="legend-dot" style="background:${CAT_COLORS[cat]}"></div>${cat}`;
-    item.addEventListener('click', () => toggleLegendCat(cat));
-    container.appendChild(item);
-  });
-}
 
 function toggleLegendCat(cat) {
   if (activeLegendCats.has(cat) && activeLegendCats.size === 1) return;
@@ -10801,11 +10895,9 @@ function toggleLegendCat(cat) {
   else activeLegendCats.add(cat);
   document.querySelectorAll('.legend-item').forEach(el => {
     if (activeLegendCats.has(el.dataset.cat)) {
-      el.classList.add('active');
-      el.classList.remove('dimmed');
+      el.classList.add('active'); el.classList.remove('dimmed');
     } else {
-      el.classList.remove('active');
-      el.classList.add('dimmed');
+      el.classList.remove('active'); el.classList.add('dimmed');
     }
   });
   drawChart1();
@@ -10815,221 +10907,349 @@ function drawChart1() {
   const container = d3.select('#chart1');
   container.selectAll('*').remove();
 
-  const d = getFilteredForIdiom1();
+  // Usa datos filtrados por estado/región/subcat pero NO por mes
+  // (el radial ES el selector de mes)
+  const d = getFilteredForChart1();
   if (!d.length) { container.append('div').attr('class','no-data').text('Sin datos'); return; }
 
-  const regions = ['East','West','Central','South'];
-  const categories = ['Furniture','Technology','Office Supplies'];
-  const catColors = {
-    'Furniture':       ['#F5F0E8','#2C5F8A'],
-    'Technology':      ['#F5F0E8','#2A6B3C'],
-    'Office Supplies': ['#F5F0E8','#A0522D']
-  };
+  const months    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthFull = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-  // Aggregate
-  const agg = {};
-  regions.forEach(r => { agg[r] = {}; categories.forEach(c => { agg[r][c] = 0; }); });
-  d.forEach(row => { if (agg[row.Region] && agg[row.Region][row.Category] !== undefined) agg[row.Region][row.Category] += row.Sales; });
+  function getMonth(row) { return months[new Date(row['Order Date']).getMonth()]; }
 
-  // Color scales per category (normalised within column)
-  const catMax = {};
-  categories.forEach(c => { catMax[c] = d3.max(regions, r => agg[r][c]); });
-  const colorScales = {};
-  categories.forEach(c => { colorScales[c] = d3.scaleSequential().domain([0, catMax[c]]).interpolator(d3.interpolateRgb(catColors[c][0], catColors[c][1])); });
+  const counts = {};
+  months.forEach(m => { counts[m] = 0; });
+  d.forEach(row => { const m = getMonth(row); if (counts[m] !== undefined) counts[m]++; });
 
-  const el = document.getElementById('chart1');
-  const W = el.clientWidth || 500;
-  const H = 300;
-  const margin = { top: 40, right: 20, bottom: 20, left: 90 };
-  const w = W - margin.left - margin.right;
-  const h = H - margin.top - margin.bottom;
-  const cellW = w / categories.length;
-  const cellH = h / regions.length;
+  const maxCount = d3.max(Object.values(counts));
+  const minCount = d3.min(Object.values(counts));
+
+  const el  = document.getElementById('chart1');
+  const W   = el.clientWidth || 500;
+  const H   = 290;
+  const cx  = W / 2, cy = H / 2 + 4;
+  const innerR = 42;
+  const outerR = Math.min(W, H) / 2 - 30;
+
+  const rScale = d3.scaleLinear().domain([0, maxCount]).range([innerR, outerR]);
+  const colorScale = d3.scaleSequential()
+    .domain([minCount, maxCount])
+    .interpolator(d3.interpolateRgb('#e8f5e9','#1b5e20'));
+
+  const angleSlice = (2 * Math.PI) / months.length;
+  const padAngle   = 0.04;
 
   const svg = container.append('svg').attr('width', W).attr('height', H);
-  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const g   = svg.append('g').attr('transform', `translate(${cx},${cy})`);
 
-  // Column headers
-  g.selectAll('.col-head')
-    .data(categories).join('text')
-    .attr('class','axis-label')
-    .attr('x', (d,i) => i * cellW + cellW / 2)
-    .attr('y', -14)
-    .attr('text-anchor','middle')
-    .attr('font-size', 11)
-    .attr('fill', (d) => catColors[d][1])
-    .text(d => d);
+  // Texto de contexto si hay filtros de otros idioms
+  const contextParts = [];
+  if (activeState)   contextParts.push(activeState);
+  if (activeRegion)  contextParts.push(activeRegion);
+  if (activeSubCat)  contextParts.push(activeSubCat);
+  if (contextParts.length) {
+    svg.append('text')
+      .attr('x', W/2).attr('y', 12)
+      .attr('text-anchor','middle').attr('font-size',9)
+      .attr('fill','var(--accent)').attr('font-weight',600)
+      .text('Filtrado: ' + contextParts.join(' · '));
+  }
 
-  // Row headers
-  g.selectAll('.row-head')
-    .data(regions).join('text')
-    .attr('class','axis-label')
-    .attr('x', -8)
-    .attr('y', (d,i) => i * cellH + cellH / 2 + 4)
-    .attr('text-anchor','end')
-    .attr('font-size', 11)
-    .text(d => d);
+  g.append('circle').attr('r', innerR)
+    .attr('fill','rgba(255,255,255,0.03)')
+    .attr('stroke','rgba(255,255,255,0.08)').attr('stroke-width',1);
 
-  // Cells
-  regions.forEach((r, ri) => {
-    categories.forEach((c, ci) => {
-      const val = agg[r][c];
-      const cellG = g.append('g')
-        .attr('transform', `translate(${ci * cellW}, ${ri * cellH})`)
-        .style('cursor','pointer');
-
-      cellG.append('rect')
-        .attr('width', cellW - 4)
-        .attr('height', cellH - 4)
-        .attr('rx', 4)
-        .attr('fill', colorScales[c](val))
-        .attr('stroke', 'rgba(255,255,255,0.06)')
-        .attr('stroke-width', 1);
-
-      // Value label
-      const pct = catMax[c] > 0 ? val / catMax[c] : 0;
-      cellG.append('text')
-        .attr('x', (cellW - 4) / 2)
-        .attr('y', (cellH - 4) / 2 - 6)
-        .attr('text-anchor','middle')
-        .attr('dominant-baseline','middle')
-        .attr('font-size', 11)
-        .attr('font-weight', 600)
-        .attr('fill', pct > 0.5 ? '#F5F0E8' : '#1C1B1A')
-        .text('$' + d3.format(',.0~s')(val));
-
-      // % of column total
-      const colTotal = regions.reduce((s, rr) => s + agg[rr][c], 0);
-      const pctOfCol = colTotal > 0 ? (val / colTotal * 100).toFixed(1) : '0';
-      cellG.append('text')
-        .attr('x', (cellW - 4) / 2)
-        .attr('y', (cellH - 4) / 2 + 10)
-        .attr('text-anchor','middle')
-        .attr('dominant-baseline','middle')
-        .attr('font-size', 9)
-        .attr('fill', pct > 0.5 ? 'rgba(245,240,232,0.7)' : 'rgba(28,27,26,0.6)')
-        .text(pctOfCol + '%');
-
-      cellG
-        .on('mouseover', function(e) {
-          d3.select(this).select('rect').attr('stroke','rgba(255,255,255,0.3)').attr('stroke-width',2);
-          showTooltip(e, r + ' — ' + c, [
-            ['Ventas', fmtUSD(val)],
-            ['% de columna', pctOfCol + '%']
-          ]);
-        })
-        .on('mouseleave', function() {
-          d3.select(this).select('rect').attr('stroke','rgba(255,255,255,0.06)').attr('stroke-width',1);
-          hideTooltip();
-        })
-        .on('click', function() {
-          activeSubCat = null;
-          updateAll();
-        });
-    });
+  [0.25,0.5,0.75,1].forEach(pct => {
+    g.append('circle').attr('r', rScale(maxCount * pct))
+      .attr('fill','none')
+      .attr('stroke','rgba(255,255,255,0.05)')
+      .attr('stroke-width',1).attr('stroke-dasharray','3,3');
   });
+
+  months.forEach((month, mi) => {
+    const val      = counts[month];
+    const isActive = activeMonths.has(mi + 1);
+
+    // d3.arc usa "0 = norte, horario" → los arcos empiezan en la parte superior
+    // Para que Jan quede arriba: arcStart = 0 cuando mi=0
+    const arcStart = mi * angleSlice;
+    const arcEnd   = arcStart + angleSlice - padAngle;
+
+    // Las etiquetas usan Math.cos/sin en coords SVG donde -π/2 = arriba (norte)
+    // Para que la etiqueta de Jan quede arriba: labelAngle = -π/2 cuando mi=0
+    const labelMid = mi * angleSlice - Math.PI / 2 + (angleSlice - padAngle) / 2;
+
+    const arc = d3.arc()
+      .innerRadius(innerR)
+      .outerRadius(rScale(val))
+      .startAngle(arcStart)
+      .endAngle(arcEnd)
+      .cornerRadius(3);
+
+    // Si hay meses activos, opacamos los inactivos
+    const baseOpacity = (activeMonths.size === 0) ? 0.88
+                      : isActive ? 1.0 : 0.22;
+
+    g.append('path')
+      .attr('d', arc)
+      .attr('fill', isActive ? '#FFD54F' : colorScale(val))
+      .attr('opacity', baseOpacity)
+      .attr('stroke', isActive ? 'rgba(255,213,79,0.7)' : 'none')
+      .attr('stroke-width', isActive ? 1.5 : 0)
+      .style('cursor','pointer')
+      .on('mouseover', function(e) {
+        d3.select(this).attr('opacity',1)
+          .attr('stroke','rgba(255,255,255,0.5)').attr('stroke-width',1.5);
+        showTooltip(e, monthFull[mi], [
+          ['Órdenes', val],
+          ['Haz clic para', isActive ? 'deseleccionar' : 'filtrar mes']
+        ]);
+      })
+      .on('mouseleave', function() {
+        d3.select(this)
+          .attr('opacity', baseOpacity)
+          .attr('stroke', isActive ? 'rgba(255,213,79,0.7)' : 'none')
+          .attr('stroke-width', isActive ? 1.5 : 0);
+        hideTooltip();
+      })
+      .on('click', function(e) {
+        e.stopPropagation();
+        const monthNum = mi + 1;
+        const headerBtn = document.querySelector(`.month-btn[data-month="${monthNum}"]`);
+        if (activeMonths.has(monthNum)) {
+          activeMonths.delete(monthNum);
+          if (headerBtn) { headerBtn.classList.remove('active'); headerBtn.style.borderColor='transparent'; headerBtn.style.color=''; }
+        } else {
+          activeMonths.add(monthNum);
+          if (headerBtn) {
+            const color = MONTH_COLORS[monthNum-1];
+            headerBtn.classList.add('active');
+            headerBtn.style.borderColor = color;
+            headerBtn.style.color = color;
+          }
+        }
+        updateAll();
+      });
+
+    const labelR = outerR + 16;
+    g.append('text')
+      .attr('x', labelR * Math.cos(labelMid))
+      .attr('y', labelR * Math.sin(labelMid) + 4)
+      .attr('text-anchor','middle').attr('font-size', 10)
+      .attr('fill', isActive ? '#FFD54F' : 'var(--text-muted)')
+      .attr('font-weight', isActive ? 700 : 400)
+      .attr('pointer-events','none')
+      .text(month);
+  });
+
+  g.append('text').attr('text-anchor','middle').attr('y',-5)
+    .attr('font-size',10).attr('font-weight',700).attr('fill','var(--text-muted)')
+    .text('Órdenes');
+  g.append('text').attr('text-anchor','middle').attr('y',10)
+    .attr('font-size',8).attr('fill','var(--text-dim)').text('por mes');
+
+  const maxMonth = months.reduce((a,b) => counts[a] > counts[b] ? a : b);
+  const minMonth = months.reduce((a,b) => counts[a] < counts[b] ? a : b);
+  svg.append('text').attr('x',8).attr('y', H - 20)
+    .attr('font-size',8).attr('fill','#1b5e20').attr('font-weight',700)
+    .text('Mayor: ' + monthFull[months.indexOf(maxMonth)] + ' (' + counts[maxMonth] + ')');
+  svg.append('text').attr('x',8).attr('y', H - 8)
+    .attr('font-size',8).attr('fill','#6BAE75').attr('font-weight',700)
+    .text('Menor: ' + monthFull[months.indexOf(minMonth)] + ' (' + counts[minMonth] + ')');
+
+  // Hint
+  svg.append('text').attr('x', W - 8).attr('y', H - 8)
+    .attr('text-anchor','end').attr('font-size',8).attr('fill','var(--text-dim)')
+    .text('Clic en arco = filtrar mes');
+
+  const lW = 100, lH = 6;
+  const lx = W - lW - 10, ly = H - 22;
+  const defs = svg.append('defs');
+  const grad = defs.append('linearGradient').attr('id','radGrad');
+  grad.append('stop').attr('offset','0%').attr('stop-color','#e8f5e9');
+  grad.append('stop').attr('offset','100%').attr('stop-color','#1b5e20');
+  svg.append('rect').attr('x',lx).attr('y',ly).attr('width',lW).attr('height',lH)
+    .attr('rx',2).attr('fill','url(#radGrad)');
+  svg.append('text').attr('x',lx-3).attr('y',ly+5.5).attr('text-anchor','end')
+    .attr('fill','var(--text-dim)').attr('font-size',7).text('Menor');
+  svg.append('text').attr('x',lx+lW+3).attr('y',ly+5.5)
+    .attr('fill','var(--text-dim)').attr('font-size',7).text('Mayor');
 }
 
 // ============================================================
-// IDIOM 2  HEATMAP BARS
+// IDIOM 2  HEATMAP TILES — click en tile filtra estado globalmente
 // ============================================================
 function drawChart2() {
   const container = d3.select('#chart2');
   container.selectAll('*').remove();
 
-  const d = getFiltered();
+  // Para chart2: excluir el filtro de estado del data feed
+  // (así el tile del estado activo sigue visible, pero resaltado)
+  const d = getFiltered({ excludeState: true });
   if (!d.length) { container.append('div').attr('class','no-data').text('Sin datos'); return; }
 
-  const stateMap = d3.rollup(d, v => d3.sum(v, r => r.Sales), r => r.State);
-  const maxSales = d3.max(stateMap.values());
-  const colorScale = d3.scaleSequential().domain([0, maxSales]).interpolator(d3.interpolateRgb('#F5F0E8','#1A3A5C'));
+  const stateMap = d3.rollup(d,
+    v => ({ sales: d3.sum(v, r => r.Sales), region: v[0].Region }),
+    r => r.State
+  );
+  const allStates = Array.from(stateMap, ([state, obj]) => ({ state, sales: obj.sales, region: obj.region }))
+    .sort((a,b) => b.sales - a.sales);
 
-  const el = document.getElementById('chart2');
-  const W = el.clientWidth || 420;
-  const H = 300;
+  const abbrevMap = {
+    "Alabama":"AL","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO",
+    "Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Idaho":"ID",
+    "Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY",
+    "Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI",
+    "Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE",
+    "Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY",
+    "North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR",
+    "Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",
+    "Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA",
+    "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
+    "District of Columbia":"DC"
+  };
 
-  const svg = container.append('svg').attr('width', W).attr('height', H);
+  if (typeof window._chart2N === 'undefined') window._chart2N = 10;
 
-  // US States as simplified paths using albersUsa projection
-  const projection = d3.geoAlbersUsa().fitSize([W, H - 30], {type:'Sphere'});
-  const path = d3.geoPath().projection(projection);
+  function render(n) {
+    window._chart2N = n;
+    const data = allStates.slice(0, n);
+    const maxSales = data[0].sales;
+    const minSales = data[data.length-1].sales;
 
-  // Load TopoJSON from CDN
-  const topoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
+    const sqrtScale  = d3.scaleSqrt().domain([minSales, maxSales]).range([0, 1]);
+    const colorScale = val => d3.interpolateRgb('#b8cfe8','#0d2b4e')(sqrtScale(val));
 
-  svg.append('text')
-    .attr('x', W/2).attr('y', H/2)
-    .attr('text-anchor','middle')
-    .attr('fill','var(--text-muted)')
-    .attr('font-size', 12)
-    .text('Cargando mapa...');
+    const el   = document.getElementById('chart2');
+    const W    = el.clientWidth || 500;
+    const cols = n <= 5 ? n : n <= 10 ? 5 : n <= 20 ? 5 : 10;
+    const rows = Math.ceil(n / cols);
+    const tileMargin = { top: 52, right: 12, bottom: 28, left: 12 };
+    const availW = W - tileMargin.left - tileMargin.right;
+    const tileW  = Math.floor(availW / cols) - 3;
+    const tileH  = Math.max(48, Math.min(80, Math.floor(160 / rows)));
+    const H      = rows * (tileH + 3) + tileMargin.top + tileMargin.bottom;
 
-  fetch(topoUrl)
-    .then(r => r.json())
-    .then(us => {
-      svg.selectAll('*').remove();
+    container.selectAll('*').remove();
+    const svg = container.append('svg').attr('width', W).attr('height', H);
 
-      const stateNames = {
-        "01":"Alabama","02":"Alaska","04":"Arizona","05":"Arkansas","06":"California",
-        "08":"Colorado","09":"Connecticut","10":"Delaware","11":"District of Columbia",
-        "12":"Florida","13":"Georgia","15":"Hawaii","16":"Idaho","17":"Illinois",
-        "18":"Indiana","19":"Iowa","20":"Kansas","21":"Kentucky","22":"Louisiana",
-        "23":"Maine","24":"Maryland","25":"Massachusetts","26":"Michigan","27":"Minnesota",
-        "28":"Mississippi","29":"Missouri","30":"Montana","31":"Nebraska","32":"Nevada",
-        "33":"New Hampshire","34":"New Jersey","35":"New Mexico","36":"New York",
-        "37":"North Carolina","38":"North Dakota","39":"Ohio","40":"Oklahoma",
-        "41":"Oregon","42":"Pennsylvania","44":"Rhode Island","45":"South Carolina",
-        "46":"South Dakota","47":"Tennessee","48":"Texas","49":"Utah","50":"Vermont",
-        "51":"Virginia","53":"Washington","54":"West Virginia","55":"Wisconsin","56":"Wyoming"
-      };
-
-      const states = topojson.feature(us, us.objects.states);
-
-      svg.selectAll('.state')
-        .data(states.features)
-        .join('path')
-        .attr('class','state')
-        .attr('d', path)
-        .attr('fill', function(feat) {
-          const name = stateNames[feat.id.toString().padStart(2,'0')];
-          const sales = stateMap.get(name) || 0;
-          return sales > 0 ? colorScale(sales) : '#2C2B28';
-        })
-        .attr('stroke','rgba(255,255,255,0.15)')
-        .attr('stroke-width', 0.5)
+    // Filter buttons (Top N)
+    const btnGroup = svg.append('g').attr('transform','translate(12, 10)');
+    [5,10,20,50].forEach((val, i) => {
+      const bx = i * 52;
+      const active = val === n;
+      const btn = btnGroup.append('g')
+        .attr('transform',`translate(${bx},0)`)
         .style('cursor','pointer')
-        .on('mouseover', function(e, feat) {
-          const name = stateNames[feat.id.toString().padStart(2,'0')];
-          const sales = stateMap.get(name) || 0;
-          d3.select(this).attr('stroke','rgba(255,255,255,0.6)').attr('stroke-width', 1.5);
-          showTooltip(e, name || 'Estado', [['Ventas', sales > 0 ? fmtUSD(sales) : 'Sin datos']]);
+        .on('click', () => render(val));
+      btn.append('rect')
+        .attr('width',46).attr('height',22).attr('rx',4)
+        .attr('fill', active ? '#4A90D9' : 'rgba(255,255,255,0.06)')
+        .attr('stroke', active ? '#4A90D9' : 'rgba(255,255,255,0.12)')
+        .attr('stroke-width',1);
+      btn.append('text')
+        .attr('x',23).attr('y',15)
+        .attr('text-anchor','middle').attr('font-size',11).attr('font-weight', active ? 700 : 400)
+        .attr('fill', active ? '#fff' : 'var(--text-muted)')
+        .text(val);
+    });
+
+    svg.append('text')
+      .attr('x', W - 12).attr('y', 20)
+      .attr('text-anchor','end').attr('font-size',9)
+      .attr('fill','var(--text-dim)')
+      .text('Clic en estado para filtrar');
+
+    const g = svg.append('g').attr('transform',`translate(${tileMargin.left},${tileMargin.top})`);
+
+    data.forEach((item, i) => {
+      const col  = i % cols;
+      const row  = Math.floor(i / cols);
+      const x    = col * (tileW + 3);
+      const y    = row * (tileH + 3);
+      const isSelected = activeState === item.state;
+      const isDimmed   = activeState && !isSelected;
+      const fill = isSelected ? '#D4845A' : colorScale(item.sales);
+      const lum  = isSelected ? 1 : sqrtScale(item.sales);
+      const textFill = lum > 0.5 ? 'rgba(245,240,232,0.95)' : '#0d2b4e';
+      const subFill  = lum > 0.5 ? 'rgba(245,240,232,0.65)' : 'rgba(13,43,78,0.6)';
+
+      const tileG = g.append('g')
+        .attr('transform',`translate(${x},${y})`)
+        .attr('opacity', isDimmed ? 0.28 : 1)
+        .style('cursor','pointer');
+
+      tileG.append('rect')
+        .attr('width', tileW).attr('height', tileH)
+        .attr('rx',3).attr('fill', fill)
+        .attr('stroke', isSelected ? 'rgba(255,255,255,0.7)' : 'none')
+        .attr('stroke-width', isSelected ? 2 : 0)
+        .on('mouseover', function(e) {
+          d3.select(this).attr('stroke','rgba(255,255,255,0.6)').attr('stroke-width',1.5);
+          showTooltip(e, item.state, [
+            ['Región', item.region],
+            ['Ventas', fmtUSD(item.sales)],
+            ['Ranking', '#' + (i+1)],
+            ['Clic para', isSelected ? 'deseleccionar' : 'filtrar estado']
+          ]);
         })
         .on('mouseleave', function() {
-          d3.select(this).attr('stroke','rgba(255,255,255,0.15)').attr('stroke-width', 0.5);
+          d3.select(this)
+            .attr('stroke', isSelected ? 'rgba(255,255,255,0.7)' : 'none')
+            .attr('stroke-width', isSelected ? 2 : 0);
           hideTooltip();
+        })
+        .on('click', function(e) {
+          e.stopPropagation();
+          activeState = (activeState === item.state) ? null : item.state;
+          updateAll();
         });
 
-      // Color legend
-      const legendW = 140, legendH = 10;
-      const lx = W - legendW - 16, ly = H - 24;
-      const defs = svg.append('defs');
-      const grad = defs.append('linearGradient').attr('id','mapGrad');
-      grad.append('stop').attr('offset','0%').attr('stop-color','#F5F0E8');
-      grad.append('stop').attr('offset','100%').attr('stop-color','#1A3A5C');
-      svg.append('rect').attr('x', lx).attr('y', ly).attr('width', legendW).attr('height', legendH).attr('rx',2).attr('fill','url(#mapGrad)');
-      svg.append('text').attr('x', lx).attr('y', ly - 3).attr('fill','var(--text-muted)').attr('font-size',9).text('$0');
-      svg.append('text').attr('x', lx + legendW).attr('y', ly - 3).attr('text-anchor','end').attr('fill','var(--text-muted)').attr('font-size',9).text(fmtK(maxSales));
-    })
-    .catch(() => {
-      svg.selectAll('*').remove();
-      svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle')
-        .attr('fill','var(--text-muted)').attr('font-size',12)
-        .text('Mapa no disponible (requiere conexion a internet)');
+      tileG.append('text')
+        .attr('x', 5).attr('y', 13)
+        .attr('font-size', 8).attr('font-weight',700)
+        .attr('fill', lum > 0.5 ? 'rgba(245,240,232,0.5)' : 'rgba(13,43,78,0.45)')
+        .attr('pointer-events','none')
+        .text('#' + (i+1));
+
+      tileG.append('text')
+        .attr('x', tileW/2).attr('y', tileH/2 + 2)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('font-size', Math.min(18, tileW * 0.36))
+        .attr('font-weight',700)
+        .attr('fill', textFill)
+        .attr('pointer-events','none')
+        .text(abbrevMap[item.state] || item.state.substring(0,2).toUpperCase());
+
+      tileG.append('text')
+        .attr('x', tileW/2).attr('y', tileH - 7)
+        .attr('text-anchor','middle')
+        .attr('font-size', Math.min(9, tileW * 0.25))
+        .attr('fill', subFill)
+        .attr('pointer-events','none')
+        .text('$' + d3.format(',.0~s')(item.sales));
     });
+
+    // Color legend
+    const lW = 120, lH = 6;
+    const lx = (W - lW)/2, ly = H - 12;
+    const defs = svg.append('defs');
+    const grad = defs.append('linearGradient').attr('id','tileGrad');
+    grad.append('stop').attr('offset','0%').attr('stop-color','#0d2b4e');
+    grad.append('stop').attr('offset','100%').attr('stop-color','#b8cfe8');
+    svg.append('rect').attr('x',lx).attr('y',ly).attr('width',lW).attr('height',lH)
+      .attr('rx',2).attr('fill','url(#tileGrad)');
+    svg.append('text').attr('x',lx-4).attr('y',ly+5.5).attr('text-anchor','end')
+      .attr('fill','var(--text-dim)').attr('font-size',7).text('Mayor');
+    svg.append('text').attr('x',lx+lW+4).attr('y',ly+5.5)
+      .attr('fill','var(--text-dim)').attr('font-size',7).text('Menor');
+  }
+
+  render(window._chart2N);
 }
 
 // ============================================================
-// IDIOM 3  DIVERGING BAR CHART
+// IDIOM 3  DIVERGING BAR CHART — click en lollipop filtra subcat
 // ============================================================
 function drawChart3() {
   const container = d3.select('#chart3');
@@ -11057,8 +11277,8 @@ function drawChart3() {
   const W = el.clientWidth || 900;
   const dotR = 7;
   const rowH = 28;
-  const H = data.length * rowH + 70;
-  const margin = { top: 24, right: 110, bottom: 36, left: 130 };
+  const H = data.length * rowH + 90;
+  const margin = { top: 32, right: 110, bottom: 36, left: 130 };
   const w = W - margin.left - margin.right;
   const h = H - margin.top - margin.bottom;
 
@@ -11069,7 +11289,20 @@ function drawChart3() {
   const svg = container.append('svg').attr('width', W).attr('height', H);
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Zero reference line
+  // Contexto activo
+  const ctx = [];
+  if (activeState)  ctx.push('Estado: ' + activeState);
+  if (activeRegion) ctx.push('Región: ' + activeRegion);
+  if (activeMonths.size) ctx.push(activeMonths.size + ' mes(es)');
+  if (ctx.length) {
+    svg.append('text')
+      .attr('x', margin.left + w/2).attr('y', 16)
+      .attr('text-anchor','middle').attr('font-size',9).attr('font-weight',600)
+      .attr('fill','var(--accent)')
+      .text(ctx.join(' · '));
+  }
+
+  // Zero line
   g.append('line')
     .attr('x1', zeroX).attr('x2', zeroX)
     .attr('y1', -8).attr('y2', h)
@@ -11077,54 +11310,39 @@ function drawChart3() {
     .attr('stroke-width', 1.5)
     .attr('stroke-dasharray','4,3');
 
-  g.append('text')
-    .attr('x', zeroX).attr('y', -12)
-    .attr('text-anchor','middle')
-    .attr('fill','rgba(255,255,255,0.35)')
-    .attr('font-size', 9)
-    .attr('letter-spacing','0.07em')
-    .text('BREAK-EVEN');
 
-  // Rows
   const rows = g.selectAll('.lollipop-row')
     .data(data).join('g')
     .attr('class','lollipop-row')
     .attr('transform', (d,i) => `translate(0, ${i * rowH})`);
 
-  // Stem: line from zero to dot
   rows.append('line')
-    .attr('x1', zeroX)
-    .attr('x2', zeroX)
-    .attr('y1', rowH / 2)
-    .attr('y2', rowH / 2)
+    .attr('x1', zeroX).attr('x2', zeroX)
+    .attr('y1', rowH / 2).attr('y2', rowH / 2)
     .attr('stroke', d => profitColor(d.profit, maxAbs))
     .attr('stroke-width', 1.5)
     .attr('opacity', d => activeSubCat && activeSubCat !== d.subCat ? 0.15 : 0.7)
     .transition().duration(350).ease(d3.easeQuadOut)
     .attr('x2', d => xScale(d.profit));
 
-  // Dot (the lollipop head)
   rows.append('circle')
-    .attr('cx', zeroX)
-    .attr('cy', rowH / 2)
-    .attr('r', dotR)
+    .attr('cx', zeroX).attr('cy', rowH / 2).attr('r', dotR)
     .attr('fill', d => profitColor(d.profit, maxAbs))
-    .attr('stroke', d => profitColor(d.profit, maxAbs))
-    .attr('stroke-width', 1.5)
+    .attr('stroke', d => activeSubCat === d.subCat ? 'rgba(255,255,255,0.8)' : profitColor(d.profit, maxAbs))
+    .attr('stroke-width', d => activeSubCat === d.subCat ? 2 : 1.5)
     .attr('opacity', d => activeSubCat && activeSubCat !== d.subCat ? 0.15 : 1)
     .style('cursor','pointer')
     .transition().duration(350).ease(d3.easeQuadOut)
     .attr('cx', d => xScale(d.profit));
 
-  // Sub-category labels (left)
   rows.append('text')
     .attr('x', -8).attr('y', rowH / 2 + 1)
     .attr('text-anchor','end').attr('dominant-baseline','middle')
     .attr('font-size', 10)
     .attr('fill', d => activeSubCat && activeSubCat !== d.subCat ? 'var(--text-dim)' : 'var(--text-muted)')
+    .attr('font-weight', d => activeSubCat === d.subCat ? 700 : 400)
     .text(d => d.subCat);
 
-  // Value labels (right of dot)
   rows.append('text')
     .attr('x', d => xScale(d.profit) + (d.profit >= 0 ? dotR + 5 : -(dotR + 5)))
     .attr('y', rowH / 2 + 1)
@@ -11135,13 +11353,13 @@ function drawChart3() {
     .attr('opacity', d => activeSubCat && activeSubCat !== d.subCat ? 0.15 : 1)
     .text(d => (d.profit >= 0 ? '+' : '') + fmtUSD(d.profit));
 
-  // Interaction
   rows.style('cursor','pointer')
     .on('mouseover', function(e, d) {
       d3.select(this).select('circle').attr('r', dotR + 3);
       showTooltip(e, d.subCat, [
         ['Categoría', d.category],
-        ['Profit', (d.profit >= 0 ? '+' : '') + fmtUSD(d.profit)]
+        ['Profit', (d.profit >= 0 ? '+' : '') + fmtUSD(d.profit)],
+        ['Clic para', activeSubCat === d.subCat ? 'deseleccionar' : 'filtrar subcategoría']
       ]);
     })
     .on('mouseleave', function(e, d) {
@@ -11153,10 +11371,14 @@ function drawChart3() {
       updateAll();
     });
 
-  // X axis
   g.append('g').attr('class','axis')
     .attr('transform', `translate(0,${h})`)
     .call(d3.axisBottom(xScale).ticks(6).tickFormat(d => d === 0 ? '$0' : (d > 0 ? '+' : '') + d3.format('$,.0~s')(d)));
+
+  // Hint
+  svg.append('text').attr('x', W - 8).attr('y', H - 4)
+    .attr('text-anchor','end').attr('font-size',8).attr('fill','var(--text-dim)')
+    .text('Clic en lollipop = filtrar subcategoría');
 }
 
 // ============================================================
@@ -11184,7 +11406,6 @@ function setupScrollAnimations() {
 function init() {
   allData = parseCSV(CSV_DATA);
   buildMonthSlicer();
-  buildLegend1();
   drawChart1();
   drawChart2();
   drawChart3();
@@ -11201,6 +11422,20 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('load', () => { setTimeout(init, 120); });
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const btn  = document.getElementById('themeToggle');
+  if (root.getAttribute('data-theme') === 'light') {
+    root.removeAttribute('data-theme');
+    btn.textContent = '🌙 Oscuro';
+  } else {
+    root.setAttribute('data-theme', 'light');
+    btn.textContent = '☀️ Día';
+  }
+  drawChart1(); drawChart2(); drawChart3();
+}
+
 </script>
 </body>
 </html>
